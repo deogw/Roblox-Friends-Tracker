@@ -1,0 +1,6 @@
+cookie.txt
+*_friends.json
+*_friends.csv
+*_activity_log.txt
+__pycache__/
+*.pyc
