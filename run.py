@@ -93,21 +93,44 @@ def get_auth_user(cookie: str):
         return None, None
 
 def fetch_friend_ids(user_id: int, cookie: str) -> Optional[List[Dict]]:
-    """Get raw friend list (IDs only)."""
+    """Get raw friend list (IDs only) using pagination."""
     log("Fetching friend list...", Fore.BLUE)
-    url = f"https://friends.roblox.com/v1/users/{user_id}/friends"
-    try:
-        resp = requests.get(url, headers=get_headers(cookie))
-        if resp.status_code == 200:
-            data = resp.json().get('data', [])
-            log(f"Found {len(data)} connections.", Fore.BLUE)
-            return data
-        elif resp.status_code == 429:
-            log("Rate limit (429) fetching list.", Fore.RED, "CRITICAL")
-            return None
-        return None
-    except requests.RequestException:
-        return None
+    url = f"https://friends.roblox.com/v1/users/{user_id}/friends/find"
+    
+    all_friends = []
+    cursor = None
+    
+    while True:
+        params = {"limit": 50}
+        if cursor:
+            params["cursor"] = cursor
+            
+        try:
+            resp = requests.get(url, headers=get_headers(cookie), params=params)
+            
+            if resp.status_code == 200:
+                data = resp.json()
+                # Handle possible response structures
+                items = data.get('PageItems', []) or data.get('data', [])
+                all_friends.extend(items)
+                
+                cursor = data.get('NextCursor') 
+                if not cursor:
+                    break
+            elif resp.status_code == 429:
+                log("Rate limit (429). Retrying...", Fore.YELLOW, "WARN")
+                time.sleep(RATE_LIMIT_DELAY)
+                continue
+            else:
+                log(f"Error fetching list: {resp.status_code}", Fore.RED, "ERROR")
+                break
+                
+        except requests.RequestException:
+            log("Network error while fetching friends.", Fore.RED, "ERROR")
+            break
+            
+    log(f"Found {len(all_friends)} connections.", Fore.BLUE)
+    return all_friends
 
 def fetch_user_details(friends: List[Dict], cookie: str, username: str) -> List[Dict]:
     """
