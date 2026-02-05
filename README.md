@@ -1,4 +1,8 @@
 # Roblox Friends Tracker & Exporter
+<div align="center">
+  <img src="https://raw.githubusercontent.com/deogw/Roblox-Friends-Tracker/refs/heads/main/screenshot.png" width="512px">
+</div>
+
 
 A lightweight Python CLI tool to export your Roblox friends list to CSV/JSON and track changes over time. It logs who unfriended you, detects new connections, and handles API rate limits automatically.
 
