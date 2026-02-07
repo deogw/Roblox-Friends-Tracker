@@ -11,7 +11,8 @@ from typing import List, Dict, Optional
 from colorama import Fore, Style, init
 
 # --- Config ---
-COOKIE_FILE = "cookie.txt"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+COOKIE_FILE = os.path.join(BASE_DIR, "cookie.txt")
 BATCH_SIZE = 50
 MAX_RETRIES = 3
 RATE_LIMIT_DELAY = 5
@@ -68,7 +69,7 @@ def get_headers(cookie: str) -> Dict:
 
 def load_local_history(username: str) -> List[Dict]:
     """Load existing JSON data to use as fallback."""
-    filename = f"{username}_friends.json"
+    filename = os.path.join(BASE_DIR, f"{username}_friends.json")
     if os.path.exists(filename):
         try:
             with open(filename, 'r', encoding='utf-8') as f:
@@ -201,8 +202,8 @@ def fetch_user_details(friends: List[Dict], cookie: str, username: str) -> List[
 
 def analyze_changes(current_list: List[Dict], username: str):
     """Check for unfriends/new friends vs local history."""
-    json_file = f"{username}_friends.json"
-    log_file = f"{username}_activity_log.txt"
+    json_file = os.path.join(BASE_DIR, f"{username}_friends.json")
+    log_file = os.path.join(BASE_DIR, f"{username}_activity_log.txt")
     
     # Sanity check: Don't analyze if data looks corrupt (too many empty names)
     empty_names = sum(1 for f in current_list if not f.get('name'))
@@ -269,13 +270,13 @@ def save_database(friends: List[Dict], username: str):
         return
 
     try:
-        with open(f"{username}_friends.json", 'w', encoding='utf-8') as f:
+        with open(os.path.join(BASE_DIR, f"{username}_friends.json"), 'w', encoding='utf-8') as f:
             json.dump(friends, f, indent=4)
     except IOError:
         log("Failed to save JSON.", Fore.RED, "ERROR")
 
     try:
-        with open(f"{username}_friends.csv", 'w', newline='', encoding='utf-8') as f:
+        with open(os.path.join(BASE_DIR, f"{username}_friends.csv"), 'w', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=friends[0].keys())
             writer.writeheader()
             writer.writerows(friends)
